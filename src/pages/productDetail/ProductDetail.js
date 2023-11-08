@@ -1,26 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import dummyImg from "../../assets/naruto.jpeg";
 import "./ProductDetail.scss";
+import { axiosClient } from "../../utils/axiosClient";
+import Loader from '../../components/loader/Loader'
 
 function ProductDetail() {
 
     const params = useParams();
+    const [product, setProduct] = useState(null);
 
-    console.log('params', params);
+    async function fetchData() {
+        const productResponse = await axiosClient.get("/products?filters[isTopPick][$eq]=true&populate=image")
+        if(productResponse.data.data.length > 0)
+            setProduct(productResponse.data.data[0])
+
+    }
+    useEffect(() => {
+        setProduct(null);
+        fetchData();
+    }, [params]);
+
+    if(!product){
+        return <Loader/>
+    }
 
     return (
         <div className="ProductDetail">
             <div className="container">
                 <div className="product-layout">
                     <div className="product-img">
-                        <img src={dummyImg} alt="product img" />
+                        <img src={product?.attributes.image.data.attributes.url} alt="product img" />
                     </div>
                     <div className="product-info">
                         <h1 className="heading">
-                            This is the Title, wall poster
+                            {product?.attributes.title}
                         </h1>
-                        <h3 className="price">₹ 549</h3>
+                        <h3 className="price">₹ {product?.attributes.price}</h3>
                         <p className="description">
                             300 GSM Fine Art Matte Paper Elegant Black Frame
                             made up of Premium Quality Synthetic Wood
